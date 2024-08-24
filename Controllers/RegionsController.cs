@@ -29,18 +29,18 @@ namespace NZWalks.API.Controllers
             var regionsModel = dbContext.Regions.ToList();
 
             //map domain to dtos
-            //var regionsDto = new List<RegionDto>();
+            var regionsDto = new List<RegionDto>();
 
-            //foreach (var region in regionsModel)
-            //{
-            //    regionsDto.Add(new RegionDto()
-            //    {
-            //        Id = region.Id,
-            //        Name = region.Name,
-            //        Code = region.Code,
-            //        RegionImageUrl = region.RegionImageUrl,
-            //    });
-            //}
+            foreach (var region in regionsModel)
+            {
+                regionsDto.Add(new RegionDto()
+                {
+                    Id = region.Id,
+                    Name = region.Name,
+                    Code = region.Code,
+                    RegionImageUrl = region.RegionImageUrl,
+                });
+            }
 
             //var regions = new List<Region>
             //{
@@ -54,7 +54,7 @@ namespace NZWalks.API.Controllers
             //    }
 
             //return dtos
-            return Ok(regionsModel);
+            return Ok(regionsDto);
 
         }
 
@@ -88,8 +88,22 @@ namespace NZWalks.API.Controllers
         //post to create new region
         [HttpPost]
 
-        public IActionResult PostRegion()
+        public IActionResult CreateRegion([FromBody] PostNewRegion postNewRegion)
         {
+            //Convert the Dto to a domain model
+            var regionDomainModel = new Region
+            {
+                Name = postNewRegion.Name,
+                Code = postNewRegion.Code,
+                RegionImageUrl = postNewRegion.RegionImageUrl
+            };
+
+            //use domain model to create a region
+
+            dbContext.Regions.Add(regionDomainModel);
+            dbContext.SaveChanges();
+
+            return CreatedAtAction(nameof(GetById), new {id =  regionDomainModel.Id}, regionDomainModel);
 
         }
 
