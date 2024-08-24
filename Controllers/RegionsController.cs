@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using NZWalks.API.Data;
 using NZWalks.API.Models.Domain;
+using NZWalks.API.Models.DTO;
 
 namespace NZWalks.API.Controllers
 {
@@ -12,38 +14,86 @@ namespace NZWalks.API.Controllers
     [ApiController]
     public class RegionsController : ControllerBase
     {
+        private readonly NZWalksDbContext dbContext;
+
+        public RegionsController(NZWalksDbContext dbContext)
+        {
+            this.dbContext = dbContext;
+        }
         //this should be added
         [HttpGet]
         public IActionResult GetAll()
         {
-            var regions = new List<Region>
-            {
-                new Region
-                {
-                    Id = Guid.NewGuid(),
-                    Name = "Nairobi",
-                    Code = "NBO",
-                    RegionImageUrl = "https://images.pexels.com/photos/27469316/pexels-photo-27469316/free-photo-of-a-group-of-people-hiking-up-a-mountain.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
-                },
-                new Region
-                {
-                    Id = Guid.NewGuid(),
-                    Name = "Kisumu",
-                    Code = "KSM",
-                    RegionImageUrl = "https://images.pexels.com/photos/18734944/pexels-photo-18734944/free-photo-of-lone-walk.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
-                },
-                new Region
-                {
-                    Id = Guid.NewGuid(),
-                    Name = "Mombasa",
-                    Code = "MSA",
-                    RegionImageUrl = "https://images.pexels.com/photos/5550026/pexels-photo-5550026.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
-                }
+            //Get data from the db
 
-               
+            var regionsModel = dbContext.Regions.ToList();
 
-            };
-            return Ok(regions);
+            //map domain to dtos
+            //var regionsDto = new List<RegionDto>();
+
+            //foreach (var region in regionsModel)
+            //{
+            //    regionsDto.Add(new RegionDto()
+            //    {
+            //        Id = region.Id,
+            //        Name = region.Name,
+            //        Code = region.Code,
+            //        RegionImageUrl = region.RegionImageUrl,
+            //    });
+            //}
+
+            //var regions = new List<Region>
+            //{
+            //    new Region
+            //    {
+            //        Id = Guid.NewGuid(),
+            //        Name = "Nairobi",
+            //        Code = "NBO",
+            //        RegionImageUrl = "https://images.pexels.com/photos/27469316/pexels-photo-27469316/free-photo-of-a-group-of-people-hiking-up-a-mountain.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+            //    }
+            //    }
+
+            //return dtos
+            return Ok(regionsModel);
+
         }
+
+        //Get region by Id endpoint
+        [HttpGet]
+        [Route("{id:guid}")]
+
+        public IActionResult GetById(Guid id)
+        {
+            var regionModel = dbContext.Regions.Find(id);
+
+            if (regionModel == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                var regionDto = new RegionDto()
+                {
+                    Id = regionModel.Id,
+                    Name = regionModel.Name,
+                    Code = regionModel.Code,
+                    RegionImageUrl = regionModel.RegionImageUrl,
+                };
+                //here regionModel still gives the client data
+                return Ok(regionDto );
+            }
+            //convert the model to a dto for the end client
+        }
+
+        //post to create new region
+        [HttpPost]
+
+        public IActionResult PostRegion()
+        {
+
+        }
+
+
     }
-}
+    }
+
