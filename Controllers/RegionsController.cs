@@ -80,7 +80,7 @@ namespace NZWalks.API.Controllers
                     RegionImageUrl = regionModel.RegionImageUrl,
                 };
                 //here regionModel still gives the client data
-                return Ok(regionDto );
+                return Ok(regionDto);
             }
             //convert the model to a dto for the end client
         }
@@ -103,11 +103,43 @@ namespace NZWalks.API.Controllers
             dbContext.Regions.Add(regionDomainModel);
             dbContext.SaveChanges();
 
-            return CreatedAtAction(nameof(GetById), new {id =  regionDomainModel.Id}, regionDomainModel);
+            return CreatedAtAction(nameof(GetById), new { id = regionDomainModel.Id }, regionDomainModel);
 
         }
 
+        //update region
+        [HttpPut]
+        [Route("{id:guid}")]
 
+        public IActionResult PutById([FromRoute]Guid id, [FromBody] UpdateRegionDto updateRegionDto)
+        {
+            var region = dbContext.Regions.Find(id);
+            if (region == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                //map region dto to domain model, basically to the db
+                region.Code = updateRegionDto.Code;
+                region.Name = updateRegionDto.Name;
+                region.RegionImageUrl = updateRegionDto.RegionImageUrl;
+
+                dbContext.SaveChanges();
+
+                //convert domain model to dto
+                var regionDto = new RegionDto
+                {
+                    Id = region.Id,
+                    Name = region.Name,
+                    Code = region.Code,
+                    RegionImageUrl = region.RegionImageUrl,
+
+                };
+
+                return Ok(regionDto);
+            }
+        }
     }
     }
 
