@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NZWalks.API.Data;
@@ -18,11 +19,13 @@ namespace NZWalks.API.Controllers
     {
         private readonly NZWalksDbContext dbContext;
         private readonly IRegionRepository regionRepository;
+        private readonly IMapper mapper;
 
-        public RegionsController(NZWalksDbContext dbContext, IRegionRepository regionRepository)
+        public RegionsController(NZWalksDbContext dbContext, IRegionRepository regionRepository, IMapper mapper)
         {
             this.dbContext = dbContext;
             this.regionRepository = regionRepository;
+            this.mapper = mapper;
         }
         //this should be added
         [HttpGet]
@@ -32,19 +35,21 @@ namespace NZWalks.API.Controllers
 
             var regionsModel = await regionRepository.GetAllAsync();
 
-            //map domain to dtos
-            var regionsDto = new List<RegionDto>();
+            
 
-            foreach (var region in regionsModel)
-            {
-                regionsDto.Add(new RegionDto()
-                {
-                    Id = region.Id,
-                    Name = region.Name,
-                    Code = region.Code,
-                    RegionImageUrl = region.RegionImageUrl,
-                });
-            }
+            //map domain to dtos
+            //var regionsDto = new List<RegionDto>();
+
+            //foreach (var region in regionsModel)
+            //{
+            //    regionsDto.Add(new RegionDto()
+            //    {
+            //        Id = region.Id,
+            //        Name = region.Name,
+            //        Code = region.Code,
+            //        RegionImageUrl = region.RegionImageUrl,
+            //    });
+            //}
 
             //var regions = new List<Region>
             //{
@@ -58,6 +63,11 @@ namespace NZWalks.API.Controllers
             //    }
 
             //return dtos
+            
+            //map the models to dtos using the mapper
+
+            var regionsDto = mapper.Map<List<RegionDto>>(regionsModel);
+
             return Ok(regionsDto);
 
         }
@@ -69,6 +79,7 @@ namespace NZWalks.API.Controllers
         public async Task<IActionResult> GetById(Guid id)
         {
             var regionModel = await regionRepository.GetByIdAsync(id);
+
 
             if (regionModel == null)
             {
