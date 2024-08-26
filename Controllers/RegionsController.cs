@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using NZWalks.API.Data;
 using NZWalks.API.Models.Domain;
 using NZWalks.API.Models.DTO;
+using NZWalks.API.Repositories;
 
 namespace NZWalks.API.Controllers
 {
@@ -16,10 +17,12 @@ namespace NZWalks.API.Controllers
     public class RegionsController : ControllerBase
     {
         private readonly NZWalksDbContext dbContext;
+        private readonly IRegionRepository regionRepository;
 
-        public RegionsController(NZWalksDbContext dbContext)
+        public RegionsController(NZWalksDbContext dbContext, IRegionRepository regionRepository)
         {
             this.dbContext = dbContext;
+            this.regionRepository = regionRepository;
         }
         //this should be added
         [HttpGet]
@@ -27,7 +30,7 @@ namespace NZWalks.API.Controllers
         {
             //Get data from the db
 
-            var regionsModel = await dbContext.Regions.ToListAsync();
+            var regionsModel = await regionRepository.GetAllAsync();
 
             //map domain to dtos
             var regionsDto = new List<RegionDto>();
@@ -65,7 +68,7 @@ namespace NZWalks.API.Controllers
 
         public async Task<IActionResult> GetById(Guid id)
         {
-            var regionModel = await dbContext.Regions.FindAsync(id);
+            var regionModel = await regionRepository.GetByIdAsync(id);
 
             if (regionModel == null)
             {
@@ -101,8 +104,10 @@ namespace NZWalks.API.Controllers
 
             //use domain model to create a region
 
-            await dbContext.Regions.AddAsync(regionDomainModel);
-            await dbContext.SaveChangesAsync();
+            //await dbContext.Regions.AddAsync(regionDomainModel);
+            //await dbContext.SaveChangesAsync();
+
+            regionDomainModel = await regionRepository.CreateAsync(regionDomainModel);
 
             return CreatedAtAction(nameof(GetById), new { id = regionDomainModel.Id }, regionDomainModel);
 
@@ -114,19 +119,28 @@ namespace NZWalks.API.Controllers
 
         public async Task<IActionResult> PutById([FromRoute]Guid id, [FromBody] UpdateRegionDto updateRegionDto)
         {
-            var region = await dbContext.Regions.FindAsync(id);
+            //map dto to domain model
+            var region = new Region
+            {
+                Code = updateRegionDto.Code,
+                RegionImageUrl = updateRegionDto.RegionImageUrl,
+                Name = updateRegionDto.Name,
+            };
+
+            //using the repository pattern
+            region = await regionRepository.UpdateAsync(id, region);
+
             if (region == null)
             {
                 return NotFound();
             }
-            else
-            {
+            else{
                 //map region dto to domain model, basically to the db
-                region.Code = updateRegionDto.Code;
-                region.Name = updateRegionDto.Name;
-                region.RegionImageUrl = updateRegionDto.RegionImageUrl;
+                //region.Code = updateRegionDto.Code;
+                //region.Name = updateRegionDto.Name;
+                //region.RegionImageUrl = updateRegionDto.RegionImageUrl;
 
-                await dbContext.SaveChangesAsync();
+                //await dbContext.SaveChangesAsync();
 
                 //convert domain model to dto
                 var regionDto = new RegionDto
@@ -147,7 +161,8 @@ namespace NZWalks.API.Controllers
         [Route("{id:guid}")]
         public async Task<IActionResult> Delete([FromRoute]Guid id)
         {
-            var region = await dbContext.Regions.FindAsync(id);
+            //var region = await dbContext.Regions.FindAsync(id);
+            var region = await regionRepository.DeleteAsync(id);
             if(region == null)
             {
                 return NotFound();
@@ -155,8 +170,7 @@ namespace NZWalks.API.Controllers
             else
             {
                 //Delete if there
-                dbContext.Regions.Remove(region);
-                await dbContext.SaveChangesAsync();
+                
                 return Ok();
 
             }
