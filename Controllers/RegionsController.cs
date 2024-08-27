@@ -131,28 +131,36 @@ namespace NZWalks.API.Controllers
 
         public async Task<IActionResult> PutById([FromRoute]Guid id, [FromBody] UpdateRegionDto updateRegionDto)
         {
-            //map dto to domain model
-            var region = mapper.Map<Region>(updateRegionDto);
-
-            //using the repository pattern
-            region = await regionRepository.UpdateAsync(id, region);
-
-            if (region == null)
+            if (ModelState.IsValid)
             {
-                return NotFound();
+                //map dto to domain model
+                var region = mapper.Map<Region>(updateRegionDto);
+
+                //using the repository pattern
+                region = await regionRepository.UpdateAsync(id, region);
+
+                if (region == null)
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    //map region dto to domain model, basically to the db
+                    //region.Code = updateRegionDto.Code;
+                    //region.Name = updateRegionDto.Name;
+                    //region.RegionImageUrl = updateRegionDto.RegionImageUrl;
+
+                    //await dbContext.SaveChangesAsync();
+
+                    //convert domain model to dto
+                    var regionDto = mapper.Map<RegionDto>(region);
+
+                    return Ok(regionDto);
+                }
             }
-            else{
-                //map region dto to domain model, basically to the db
-                //region.Code = updateRegionDto.Code;
-                //region.Name = updateRegionDto.Name;
-                //region.RegionImageUrl = updateRegionDto.RegionImageUrl;
-
-                //await dbContext.SaveChangesAsync();
-
-                //convert domain model to dto
-                var regionDto = mapper.Map<RegionDto>(region);
-
-                return Ok(regionDto);
+            else
+            {
+                return BadRequest(ModelState);
             }
         }
 
