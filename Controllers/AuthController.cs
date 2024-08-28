@@ -58,6 +58,32 @@ namespace NZWalks.API.Controllers
             return BadRequest("Cannot register the user");
 
         }
+
+        //post method for logging in
+        [HttpPost]
+        [Route("Ligin")]
+        public async Task<IActionResult> Login([FromBody] LoginRequestDto loginRequestDto)
+        {
+            var user = await userManager.FindByEmailAsync(loginRequestDto.UserName);
+
+            if (user != null)
+            {
+                var paswordResult = await userManager.CheckPasswordAsync(user, loginRequestDto.Password);
+
+                if (paswordResult)
+                {
+                    //create and assign a token
+
+                    return Ok("Successful");
+                }
+            }
+            
+            
+                return BadRequest("Wrong username or password");
+            
+
+
+        }
         
 
     }
